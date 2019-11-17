@@ -1,2 +1,4 @@
 include ':app'
+include ':clink'
+include ':opus'
 rootProject.name='AudioDemo'
