@@ -5,6 +5,7 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.Html;
+import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.view.View;
 import android.widget.Button;
@@ -62,22 +63,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         checkPermission();
     }
 
-    private boolean checkPermission() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
-                != PackageManager.PERMISSION_GRANTED
-                || ContextCompat.checkSelfPermission(this, Manifest.permission.INTERNET)
-                != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.RECORD_AUDIO, Manifest.permission.INTERNET},
-                    MY_PERMISSIONS_REQUEST_RECORD_AUDIO);
-            return false;
-        }
-        return true;
-    }
-
     @Override
     public void onClick(View v) {
-
+        if (!checkPermission()) {
+            showToast(getString(R.string.toast_permission));
+            return;
+        }
+        if (mInput.isEnabled()) {
+            String roomCode = mInput.getText().toString().trim();
+            if (TextUtils.isEmpty(roomCode)) {
+                mPresenter.createRoom();
+            } else {
+                mPresenter.joinRoom(roomCode);
+            }
+        } else {
+            mPresenter.leaveRoom();
+        }
     }
 
     @Override
@@ -99,21 +100,55 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void showToast(String msg) {
-        Toast.makeText(this, msg, Toast.LENGTH_LONG).show();
+        if (mToast != null) {
+            mToast.cancel();
+        }
+        mToast = Toast.makeText(this, msg, Toast.LENGTH_LONG);
+        mToast.show();
+    }
+
+    @Override
+    public void showToast(int msgRes) {
+        if (mToast != null) {
+            mToast.cancel();
+        }
+        mToast = Toast.makeText(this, msgRes, Toast.LENGTH_LONG);
+        mToast.show();
     }
 
     @Override
     public void showRoomCode(String roomCode) {
-
+        mInput.setText(roomCode);
     }
 
     @Override
     public void onOnline() {
-
+        mInput.setEnabled(false);
+        mSubmitButton.setText(R.string.btn_unlink);
     }
 
     @Override
     public void onOffline() {
+        mInput.setEnabled(true);
+        mInput.setText("");
+    }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mPresenter.destroy();
+    }
+
+    private boolean checkPermission() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
+                != PackageManager.PERMISSION_GRANTED
+                || ContextCompat.checkSelfPermission(this, Manifest.permission.INTERNET)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.RECORD_AUDIO, Manifest.permission.INTERNET},
+                    MY_PERMISSIONS_REQUEST_RECORD_AUDIO);
+            return false;
+        }
+        return true;
     }
 }

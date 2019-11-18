@@ -3,7 +3,7 @@ package com.robert.audiodemo;
 public interface AppContract {
 
     // 服务器地址
-    String SERVER_ADDRESS = "192.168.124.3";
+    String SERVER_ADDRESS = "192.168.10.199";
     // 服务器端口
     int PORT = 30401;
 
@@ -23,6 +23,8 @@ public interface AppContract {
         void dismissProgress();
 
         void showToast(String msg);
+
+        void showToast(int msgRes);
 
         void showRoomCode(String roomCode);
 
